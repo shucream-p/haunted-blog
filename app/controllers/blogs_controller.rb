@@ -5,6 +5,8 @@ class BlogsController < ApplicationController
 
   before_action :set_blog, only: %i[show edit update destroy]
 
+  before_action :can_run?, only: %i[edit update destroy]
+
   def index
     @blogs = Blog.search(params[:term]).published.default_order
   end
@@ -45,6 +47,10 @@ class BlogsController < ApplicationController
 
   def set_blog
     @blog = Blog.find(params[:id])
+  end
+
+  def can_run?
+    raise ActiveRecord::RecordNotFound unless current_user.id == @blog.user_id
   end
 
   def blog_params
