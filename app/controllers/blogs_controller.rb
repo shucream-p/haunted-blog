@@ -5,13 +5,15 @@ class BlogsController < ApplicationController
 
   before_action :set_blog, only: %i[show edit update destroy]
 
-  before_action :can_run?, only: %i[edit update destroy]
+  before_action :validate_correct_user, only: %i[edit update destroy]
 
   def index
     @blogs = Blog.search(params[:term]).published.default_order
   end
 
-  def show; end
+  def show
+    validate_correct_user if @blog.secret?
+  end
 
   def new
     @blog = Blog.new
@@ -49,8 +51,8 @@ class BlogsController < ApplicationController
     @blog = Blog.find(params[:id])
   end
 
-  def can_run?
-    raise ActiveRecord::RecordNotFound unless current_user.id == @blog.user_id
+  def validate_correct_user
+    raise ActiveRecord::RecordNotFound if !user_signed_in? || current_user.id != @blog.user_id
   end
 
   def blog_params
